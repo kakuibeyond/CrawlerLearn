@@ -1,4 +1,4 @@
 {
-    "python.pythonPath": "D:\\miniconda3\\envs\\litchi_py37\\python.exe",
+    "python.pythonPath": "/home/cw/anaconda3/envs/nlp/bin/python",
     "workbench.editor.enablePreview": false
 }

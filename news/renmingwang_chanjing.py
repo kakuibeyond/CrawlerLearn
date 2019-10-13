@@ -1,17 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Dec 20 16:44:10 2018
-
-@author: ly
-"""
-
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Dec 19 21:48:17 2018
-
-@author: ly
-"""
-
+##可以正常爬取 返回所有文本
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -21,15 +8,19 @@ from pyquery import PyQuery as pq
 
 
 import os
-
 import requests
 from requests.exceptions import RequestException
 import time
 
+
 browser = webdriver.Chrome()
 wait = WebDriverWait(browser, 10, poll_frequency=1)
 
-keyword = '战略合作'
+net_name = '人民网产经'
+event_name='事件：盈利亏损'
+keyword = '每股盈利'
+doc_name = keyword+'.txt'
+
 headers = {'user-agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.26 Safari/537.36 Core/1.63.5050.400 QQBrowser/10.0.941.400'}
 
 search_url = 'http://industry.people.com.cn/GB/413887/index.html'
@@ -41,7 +32,7 @@ def search(keyword,search_url):
         submit = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > div.w1000.clear.logo_line.mt15.o_h > div.fr > form > input[type="image"]:nth-child(5)')))
         input.send_keys(keyword)
         submit.click()
-        time.sleep(2)
+        time.sleep(2)#点击搜索按钮后 待加载出来
         browser.switch_to.window(browser.window_handles[-1])
         page_num = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR,'body > div.w1000.ej_content.mt30 > div > div > div.searchbar_text > b')))
         return page_num.text
@@ -73,7 +64,7 @@ def next_page():
         print('点击下一页超时')
         browser.refresh()
 
-def get_one_page_links():
+def get_one_page_links():#获取单个页面的所有链接
     try:
         wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'body > div.w1000.ej_content.mt30 > div > div > div.page2_list')))
         html = browser.page_source
@@ -124,47 +115,57 @@ def get_news_text(url):
             text = doc('.fl.text_con_left .box_con').text()
             whole_text = title+'\n'+text
             return whole_text
-        except:
+        except: 
             pass
     except RequestException:
         print('获取单页文本超时')
         get_news_text(url)
 
+#根据关键词选出有用的段落 标题也视为一个段落
+def fetch_para(text,keyword):
+    text_list=text.splitlines()
+    #返回字符串列表， 不过分隔符为(’\r’, ‘\r\n’, \n’)，也就是说按照行分隔
+    useful_para=[]
+    for e in text_list:
+        if keyword in e:
+            useful_para.append(e)
+    return useful_para
 
 def get_all_text(keyword, links_list):
-    for num,url in enumerate(links_list):
+    for url in enumerate(links_list):
         time.sleep(3)
-        text = get_news_text(url)
-        doc_name = str(num+124)+'.txt'
+        text = get_news_text(url)#全文
+        text_use=fetch_para(text,keyword)
         if not text is None:
             with open(doc_name,'a',encoding='utf-8') as f1:
-                f1.write(text)
+                for tu in text_use:
+                    f1.write(tu+'\n')
 
             
 def main():
-    net_name = '人民网产经'
+    
     try:
-        os.mkdir('D:\\学习\\爬虫' + '\\' + net_name)
+        os.mkdir('/home/cw/文档/event-extra/newdata')
     except:
         pass
 
-    os.chdir('D:\\学习\\爬虫' + '\\' + net_name)
+    os.chdir('/home/cw/文档/event-extra/newdata')
     try:
-        os.mkdir('D:\\学习\\爬虫' + '\\' + net_name +'\\'+ keyword)
+        os.mkdir('/home/cw/文档/event-extra/newdata/'+ event_name)
     except:
         pass
-    os.chdir('D:\\学习\\爬虫' + '\\' + net_name +'\\'+ keyword)
+    os.chdir('/home/cw/文档/event-extra/newdata/'+ event_name)
     page_num = int(search(keyword, search_url))
     if page_num == 0:
         print(keyword + ' 无结果')
-    links_list = get_all_links(page_num)
+    links_list = get_all_links(page_num)#存下所有结果界面的网页链接
     links_num = len(links_list)
-    print('链接数：'+str(links_num))
+    print(net_name+'搜索到的关于 '+keyword+' 的链接数：'+str(links_num))
     if links_num == 0:
         print('无结果')
     print(net_name + ' ' + keyword+' 链接完成')
-    links_list_new = links_list[123:]
-    get_all_text(keyword, links_list_new)
+    # links_list_new = links_list[123:]
+    get_all_text(keyword, links_list)
     print(net_name + ' ' + keyword+' 文本完成')
 
 if __name__ == '__main__':
