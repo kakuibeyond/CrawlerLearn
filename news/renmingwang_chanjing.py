@@ -1,4 +1,4 @@
-##可以正常爬取 返回所有文本
+##递归深度超出最大值 '获取单页文本超时'一直超时无法获取文本
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -12,7 +12,6 @@ import requests
 from requests.exceptions import RequestException
 import time
 
-
 browser = webdriver.Chrome()
 wait = WebDriverWait(browser, 10, poll_frequency=1)
 
@@ -21,6 +20,8 @@ event_name='事件：盈利亏损'
 keyword = '每股盈利'
 doc_name = keyword+'.txt'
 
+# data_path='../newsdata/'
+data_path='D:\\Projects\\CrawlerLearn\\newsdata'
 headers = {'user-agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.26 Safari/537.36 Core/1.63.5050.400 QQBrowser/10.0.941.400'}
 
 search_url = 'http://industry.people.com.cn/GB/413887/index.html'
@@ -143,18 +144,13 @@ def get_all_text(keyword, links_list):
 
             
 def main():
-    
+    os.chdir(data_path)
     try:
-        os.mkdir('/home/cw/文档/event-extra/newdata')
+        os.mkdir(event_name)
     except:
         pass
+    os.chdir(data_path+'\\'+event_name)
 
-    os.chdir('/home/cw/文档/event-extra/newdata')
-    try:
-        os.mkdir('/home/cw/文档/event-extra/newdata/'+ event_name)
-    except:
-        pass
-    os.chdir('/home/cw/文档/event-extra/newdata/'+ event_name)
     page_num = int(search(keyword, search_url))
     if page_num == 0:
         print(keyword + ' 无结果')
@@ -164,7 +160,6 @@ def main():
     if links_num == 0:
         print('无结果')
     print(net_name + ' ' + keyword+' 链接完成')
-    # links_list_new = links_list[123:]
     get_all_text(keyword, links_list)
     print(net_name + ' ' + keyword+' 文本完成')
 
