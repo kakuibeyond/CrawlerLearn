@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 #存好结果界面的url列表 然后再放到服务器上面用requests+pyquery爬取
+# keyword匹配段落 只存匹配到的段落（或标题
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
